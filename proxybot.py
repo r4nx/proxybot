@@ -172,7 +172,7 @@ def handle_group_messages(message):
         if message.content_type == 'sticker':
             sender_name = getattr(message.from_user, 'username', None) or \
                 (getattr(message.from_user, 'first_name', None) or '') + (getattr(message.from_user, 'last_name', None) or '') or 'Unknown user'
-            tb.send_message(cfg['current_group'], 'Sticker by ' + sender_name)
+            tb.send_message(user, 'Sticker by ' + sender_name)
         forwarded = tb.forward_message(user, message.chat.id, message.message_id)
         if not isinstance(forwarded, telebot.types.Message):
             log.warning('Message failed to forward:\n\n{}\n\n'.format(forwarded))
