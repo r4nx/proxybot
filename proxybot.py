@@ -121,6 +121,9 @@ def handle_add_user(message):
         chat = tb.get_chat(user_id)
         if not chat.type == 'private':
             raise ValueError
+        if user_id in cfg['users'].values():
+            tb.send_message(message.chat.id, 'User have been added already')
+            return
         cfg['users'][params[2]] = user_id
     except (ValueError, telebot.apihelper.ApiException):
         tb.send_message(message.chat.id, 'Incorrect user id')
