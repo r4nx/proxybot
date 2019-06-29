@@ -2,5 +2,6 @@
     "token": "",
     "admins": {},
     "users": {},
-    "groups": []
+    "groups": [],
+    "no_forward_prefix": null
 }
