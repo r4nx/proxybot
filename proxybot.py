@@ -28,6 +28,7 @@ def load_config(file_name):
 cfg = load_config(CFG_PATH)
 
 logger = logging.getLogger(__name__)
+NO_FORWARD_PREFIX_CHARS = '!#$&*+<=>-~'
 CONTENT_TYPES = ['text', 'audio', 'document', 'photo', 'sticker', 'video', 'video_note', 'voice', 'contact']
 
 tb = telebot.TeleBot(cfg['token'])
@@ -163,6 +164,25 @@ def handle_remove_user(message):
         tb.send_message(message.chat.id, 'User {} was removed'.format(params[1]))
 
 
+@tb.message_handler(commands=['noforwardprefix'], func=user_access_handler)
+def handle_no_forward_prefix(message):
+    params = message.text.split(' ')
+    if len(params) < 2:
+        cfg['no_forward_prefix'] = None
+        save_config(cfg, CFG_PATH)
+        tb.send_message(message.chat.id, 'Disabled no forward prefix')
+        return
+
+    prefix = ' '.join(params[1:]).strip()
+    if not all([c in NO_FORWARD_PREFIX_CHARS for c in prefix]):
+        tb.send_message(message.chat.id, 'Incorrect prefix, allowed characters:\n' + NO_FORWARD_PREFIX_CHARS)
+        return
+
+    cfg['no_forward_prefix'] = prefix
+    save_config(cfg, CFG_PATH)
+    tb.send_message(message.chat.id, 'Set no forward prefix to ' + prefix)
+
+
 @tb.message_handler(commands=['getid'])
 def handle_get_id(message):
     tb.send_message(message.chat.id, '*Chat ID:* ' + str(message.chat.id), parse_mode='Markdown')
@@ -177,9 +197,12 @@ def handle_private_messages(message):
         sender_name = getattr(message.from_user, 'username', None) or \
             (getattr(message.from_user, 'first_name', None) or '') + (getattr(message.from_user, 'last_name', None) or '') or 'Unknown user'
         tb.send_message(cfg['current_group'], 'Sticker by ' + sender_name)
-    forwarded = tb.forward_message(cfg['current_group'], message.chat.id, message.message_id)
-    if not isinstance(forwarded, telebot.types.Message):
-        log.warning('Message failed to forward:\n\n{}\n\n'.format(forwarded))
+    if cfg['no_forward_prefix'] is not None and message.content_type == 'text' and message.text.startswith(cfg['no_forward_prefix']):
+        tb.send_message(cfg['current_group'], message.text)
+    else:
+        forwarded = tb.forward_message(cfg['current_group'], message.chat.id, message.message_id)
+        if not isinstance(forwarded, telebot.types.Message):
+            log.warning('Message failed to forward:\n\n{}\n\n'.format(forwarded))
 
 
 @tb.message_handler(func=lambda msg: msg.chat.type in ('group', 'supergroup') and msg.chat.id in cfg['groups'], content_types=CONTENT_TYPES)
