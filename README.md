@@ -44,6 +44,9 @@ Replace `yournickname` and `12345678` with any nick (not necessarely your userna
 **/removeuser <alias>**
 > Remove the user
 
+**/noforwardprefix <prefix>**
+> If PM -> Group message starts with this prefix, bot won't forward your message and will send its text only. Allowed characters to use are `!#$&*+<=>-~`. To disable this feature simply send `/noforwardprefix` without arguments
+
 ## Permission system
 Users have access to `/groups`, `/switchgroup` and `/users` commands. Admins have access to all the commands, including user commands.  
 Note that only users get their messages sent to groups and receive messages from groups, it won't work if you only in admins group and not in users.
