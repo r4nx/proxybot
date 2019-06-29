@@ -198,28 +198,34 @@ def handle_private_messages(message):
     for target_chat in ((cfg['current_group'],) if cfg['current_group'] is not None else ()) + tuple(cfg['users'].values()):
         if target_chat == message.chat.id:
             continue
-        if message.content_type == 'sticker':
-            sender_name = getattr(message.from_user, 'username', None) or \
-                (getattr(message.from_user, 'first_name', None) or '') + (getattr(message.from_user, 'last_name', None) or '') or 'Unknown user'
-            tb.send_message(target_chat, 'Sticker by ' + sender_name)
-        if cfg['no_forward_prefix'] is not None and message.content_type == 'text' and message.text.startswith(cfg['no_forward_prefix']):
-            tb.send_message(target_chat, message.text)
-        else:
-            forwarded = tb.forward_message(target_chat, message.chat.id, message.message_id)
-            if not isinstance(forwarded, telebot.types.Message):
-                log.warning('Message failed to forward:\n\n{}\n\n'.format(forwarded))
+        try:
+            if message.content_type == 'sticker':
+                sender_name = getattr(message.from_user, 'username', None) or \
+                    (getattr(message.from_user, 'first_name', None) or '') + (getattr(message.from_user, 'last_name', None) or '') or 'Unknown user'
+                tb.send_message(target_chat, 'Sticker by ' + sender_name)
+            if cfg['no_forward_prefix'] is not None and message.content_type == 'text' and message.text.startswith(cfg['no_forward_prefix']):
+                tb.send_message(target_chat, message.text)
+            else:
+                forwarded = tb.forward_message(target_chat, message.chat.id, message.message_id)
+                if not isinstance(forwarded, telebot.types.Message):
+                    log.warning('Message failed to forward:\n\n{}\n\n'.format(forwarded))
+        except telebot.apihelper.apihelper as e:
+            log.warning('Failed to send API request:\n' + repr(e))
 
 
 @tb.message_handler(func=lambda msg: msg.chat.type in ('group', 'supergroup') and msg.chat.id in cfg['groups'], content_types=CONTENT_TYPES)
 def handle_group_messages(message):
     for user in cfg['users'].values():
-        if message.content_type == 'sticker':
-            sender_name = getattr(message.from_user, 'username', None) or \
-                (getattr(message.from_user, 'first_name', None) or '') + (getattr(message.from_user, 'last_name', None) or '') or 'Unknown user'
-            tb.send_message(user, 'Sticker by ' + sender_name)
-        forwarded = tb.forward_message(user, message.chat.id, message.message_id)
-        if not isinstance(forwarded, telebot.types.Message):
-            log.warning('Message failed to forward:\n\n{}\n\n'.format(forwarded))
+        try:
+            if message.content_type == 'sticker':
+                sender_name = getattr(message.from_user, 'username', None) or \
+                    (getattr(message.from_user, 'first_name', None) or '') + (getattr(message.from_user, 'last_name', None) or '') or 'Unknown user'
+                tb.send_message(user, 'Sticker by ' + sender_name)
+            forwarded = tb.forward_message(user, message.chat.id, message.message_id)
+            if not isinstance(forwarded, telebot.types.Message):
+                log.warning('Message failed to forward:\n\n{}\n\n'.format(forwarded))
+        except telebot.apihelper.ApiException as e:
+            log.warning('Failed to send API request:\n' + repr(e))
 
 
 def try_get_chat(chat_id):
@@ -252,13 +258,13 @@ def main():
 
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
-    
+
     sys.excepthook = error_handler
-    
+
     if 'current_group' not in cfg:
         cfg['current_group'] = None
         save_config(cfg, CFG_PATH)
-    
+
     logger.info('Bot started')
 
     try:
