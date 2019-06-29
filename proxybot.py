@@ -195,13 +195,7 @@ def handle_get_id(message):
 
 @tb.message_handler(func=lambda msg: msg.chat.type == 'private' and msg.chat.id in cfg['users'].values(), content_types=CONTENT_TYPES)
 def handle_private_messages(message):
-    recipients = []
-    if cfg['current_group'] is None:
-        tb.send_message(message.chat.id, '*Warning:* no group selected, sending message only to users', parse_mode='Markdown')
-    else:
-        recipients.append(cfg['current_group'])
-
-    for target_chat in recipients + list(cfg['users'].values()):
+    for target_chat in ((cfg['current_group'],) if cfg['current_group'] is not None else ()) + tuple(cfg['users'].values()):
         if target_chat == message.chat.id:
             continue
         if message.content_type == 'sticker':
