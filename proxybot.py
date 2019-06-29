@@ -17,9 +17,11 @@
 import json
 import logging
 from logging.handlers import RotatingFileHandler
+from time import sleep
 import sys
 
 import telebot
+from requests.exceptions import RequestException
 
 CFG_PATH = 'config.json'
 def load_config(file_name):
@@ -267,11 +269,18 @@ def main():
 
     logger.info('Bot started')
 
-    try:
-        tb.polling(none_stop=True)
-    except (KeyboardInterrupt, EOFError, SystemExit):
-        tb.stop_bot()
-    logger.info('Bot stopped')
+    while True:
+        try:
+            tb.polling(none_stop=True)
+            logger.info('Bot stopped')
+            break
+        except RequestException:
+            try:
+                logger.error('Connection lost, restarting in 3 seconds..')
+                sleep(3)
+            except (KeyboardInterrupt, EOFError, SystemExit):
+                logger.info('Exited manually during restarting')
+                break
 
 
 if __name__ == '__main__':
