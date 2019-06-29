@@ -67,6 +67,11 @@ def handle_switch_group(message):
     if len(params) != 2:
         tb.send_message(message.chat.id, '*Usage:* /switchgroup <index>', parse_mode='Markdown')
         return
+    if params[1].strip().lower() == 'none':
+        cfg['current_group'] = None
+        save_config(cfg, CFG_PATH)
+        tb.send_message(message.chat.id, 'Reset current group')
+        return
     try:
         cfg['current_group'] = cfg['groups'][int(params[1])]
     except (ValueError, IndexError):
@@ -190,19 +195,19 @@ def handle_get_id(message):
 
 @tb.message_handler(func=lambda msg: msg.chat.type == 'private' and msg.chat.id in cfg['users'].values(), content_types=CONTENT_TYPES)
 def handle_private_messages(message):
-    if cfg['current_group'] is None:
-        tb.send_message(message.chat.id, 'No group selected')
-        return
-    if message.content_type == 'sticker':
-        sender_name = getattr(message.from_user, 'username', None) or \
-            (getattr(message.from_user, 'first_name', None) or '') + (getattr(message.from_user, 'last_name', None) or '') or 'Unknown user'
-        tb.send_message(cfg['current_group'], 'Sticker by ' + sender_name)
-    if cfg['no_forward_prefix'] is not None and message.content_type == 'text' and message.text.startswith(cfg['no_forward_prefix']):
-        tb.send_message(cfg['current_group'], message.text)
-    else:
-        forwarded = tb.forward_message(cfg['current_group'], message.chat.id, message.message_id)
-        if not isinstance(forwarded, telebot.types.Message):
-            log.warning('Message failed to forward:\n\n{}\n\n'.format(forwarded))
+    for target_chat in ((cfg['current_group'],) if cfg['current_group'] is not None else ()) + tuple(cfg['users'].values()):
+        if target_chat == message.chat.id:
+            continue
+        if message.content_type == 'sticker':
+            sender_name = getattr(message.from_user, 'username', None) or \
+                (getattr(message.from_user, 'first_name', None) or '') + (getattr(message.from_user, 'last_name', None) or '') or 'Unknown user'
+            tb.send_message(target_chat, 'Sticker by ' + sender_name)
+        if cfg['no_forward_prefix'] is not None and message.content_type == 'text' and message.text.startswith(cfg['no_forward_prefix']):
+            tb.send_message(target_chat, message.text)
+        else:
+            forwarded = tb.forward_message(target_chat, message.chat.id, message.message_id)
+            if not isinstance(forwarded, telebot.types.Message):
+                log.warning('Message failed to forward:\n\n{}\n\n'.format(forwarded))
 
 
 @tb.message_handler(func=lambda msg: msg.chat.type in ('group', 'supergroup') and msg.chat.id in cfg['groups'], content_types=CONTENT_TYPES)
