@@ -33,7 +33,7 @@ Replace `yournickname` and `12345678` with any nick (not necessarely your userna
 > Remove the group *(pay attention to parameter - it is index that showed by `/groups` command)*
 
 **/switchgroup <group_index>**
-> Select group to send messages from users (users receive messages from all groups regardless of this option)
+> Select group to send messages from users (users receive messages from all groups regardless of this option). Use `/switchgroup none` to reset current group
 
 **/users**
 > List of all users

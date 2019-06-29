@@ -67,6 +67,11 @@ def handle_switch_group(message):
     if len(params) != 2:
         tb.send_message(message.chat.id, '*Usage:* /switchgroup <index>', parse_mode='Markdown')
         return
+    if params[1].strip().lower() == 'none':
+        cfg['current_group'] = None
+        save_config(cfg, CFG_PATH)
+        tb.send_message(message.chat.id, 'Reset current group')
+        return
     try:
         cfg['current_group'] = cfg['groups'][int(params[1])]
     except (ValueError, IndexError):
