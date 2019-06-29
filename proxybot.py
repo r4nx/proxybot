@@ -263,10 +263,6 @@ def main():
 
     sys.excepthook = error_handler
 
-    if 'current_group' not in cfg:
-        cfg['current_group'] = None
-        save_config(cfg, CFG_PATH)
-
     logger.info('Bot started')
 
     while True:

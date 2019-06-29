@@ -3,5 +3,6 @@
     "admins": {},
     "users": {},
     "groups": [],
-    "no_forward_prefix": null
+    "no_forward_prefix": null,
+    "current_group": null
 }
