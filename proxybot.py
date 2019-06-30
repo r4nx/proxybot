@@ -210,9 +210,9 @@ def handle_private_messages(message):
             else:
                 forwarded = tb.forward_message(target_chat, message.chat.id, message.message_id)
                 if not isinstance(forwarded, telebot.types.Message):
-                    log.warning('Message failed to forward:\n\n{}\n\n'.format(forwarded))
+                    logger.warning('Message failed to forward:\n\n{}\n\n'.format(forwarded))
         except telebot.apihelper.apihelper as e:
-            log.warning('Failed to send API request:\n' + repr(e))
+            logger.warning('Failed to send API request:\n' + repr(e))
 
 
 @tb.message_handler(func=lambda msg: msg.chat.type in ('group', 'supergroup') and msg.chat.id in cfg['groups'], content_types=CONTENT_TYPES)
@@ -225,9 +225,9 @@ def handle_group_messages(message):
                 tb.send_message(user, 'Sticker by ' + sender_name)
             forwarded = tb.forward_message(user, message.chat.id, message.message_id)
             if not isinstance(forwarded, telebot.types.Message):
-                log.warning('Message failed to forward:\n\n{}\n\n'.format(forwarded))
+                logger.warning('Message failed to forward:\n\n{}\n\n'.format(forwarded))
         except telebot.apihelper.ApiException as e:
-            log.warning('Failed to send API request:\n' + repr(e))
+            logger.warning('Failed to send API request:\n' + repr(e))
 
 
 def try_get_chat(chat_id):
