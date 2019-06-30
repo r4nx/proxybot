@@ -211,7 +211,7 @@ def handle_private_messages(message):
                 forwarded = tb.forward_message(target_chat, message.chat.id, message.message_id)
                 if not isinstance(forwarded, telebot.types.Message):
                     logger.warning('Message failed to forward:\n\n{}\n\n'.format(forwarded))
-        except telebot.apihelper.apihelper as e:
+        except telebot.apihelper.ApiException as e:
             logger.warning('Failed to send API request:\n' + repr(e))
 
 
